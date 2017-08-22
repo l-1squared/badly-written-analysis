@@ -1,6 +1,31 @@
 !----------------------------------------------------------------------- 
 !List of subroutines that are added to file Main.F at compile time
 !----------------------------------------------------------------------- 
+subroutine read_input(finput, fqmmmtrajlist, nreplica)
+    implicit none
+    character(*), parameter :: FName = 'read_input'
+    character(*), parameter :: CName = MName // ":" // FName
+    character(*), intent(in)                        :: finput
+    character(*), intent(out)                       :: fqmmmtrajlist
+    integer, intent(out)                            :: nreplica
+    integer                                         :: iounit
+    logical                                         :: ioisopen
+    character(LEN=globlinelen)                      :: qmmm_trajectory_file
+    integer                                         :: number_of_replicas
+    namelist/general/ qmmm_trajectory_file, number_of_replicas
+
+    call get_unit(finput, iounit, ioisopen)
+    if (.not. ioisopen) open(iounit, FILE=finput, STATUS='old',&
+                             ACTION='read')
+    read(iounit, NML=general)
+    if(debug) write(output_unit, NML=general)
+    if (.not. ioisopen) close(iounit, STATUS='keep')
+
+    fqmmmtrajlist = qmmm_trajectory_file
+    nreplica = number_of_replicas
+end subroutine
+
+
 subroutine PrintProgramData(indent)
     implicit none
     character(*),parameter :: FName="PrintProgramData"

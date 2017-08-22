@@ -30,12 +30,12 @@ LIBDIR=$(addprefix $(WD)/,../repo/lib)
 LIBS=-lfftw3 -lbase
 
 T2AMODS= 
-T2BMODS= AtomListMod.F Molecule.F ReadPSFMod.F DetMolsMod.F
+T2BMODS= AtomListMod.F Molecule.F ReadPSFMod.F DetMolsMod.F 
 
-STRCMODS= ProvideGeoMod.F
+STRCMODS= GenGrids.F
+LOCMODS= ProvideGeoMod.F DistancesMod.F Main.F
 		 
 		 
-LOCMODS= Main.F
 		 
 		 
 		 

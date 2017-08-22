@@ -218,7 +218,7 @@ contains
             if(bonds(i,1).eq.myID.OR.bonds(i,2).eq.myID)then
                 aval=merge(bonds(i,1),bonds(i,2),bonds(i,2).eq.myID)
                 call myParts%append(aval)
-            else if( bonds(i,1).gt.myID)then
+            else if (bonds(i,1) .gt. myID) then
                 exit
             end if
         end do

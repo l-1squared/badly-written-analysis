@@ -7,6 +7,7 @@
 !----------------------------------------------------------------------
 module ProvideGeoMod
 use useful, only : PrintError, debug
+use geom_module, only : box
 use Print_Arrays, only : get_unit
 use AtomMod, only : Atom
 use MoleculeMod, only : Molecule
@@ -106,6 +107,9 @@ contains
         read(this%iounit, *, IOSTAT=iostat) line
         file_ended = iostat .lt. 0
         backspace(this%iounit, IOSTAT=iostat)
+        associate(cell =>geoinstance%getcell())
+            box = cell(1:3)
+        end associate
     end subroutine
 !   ------------------------------------------------------------------
 !   <summary> close the trajectory  file </summary> 
