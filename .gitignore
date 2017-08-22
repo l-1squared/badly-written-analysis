@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# program src folder  specialties
+build/
+*.swp
