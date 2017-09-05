@@ -1,5 +1,5 @@
 module DetMolsMod
-use useful, only : PrintError
+use useful, only : PrintError, toChar
 use Print_Arrays, only: get_unit
 use AtomMod, only: Atom
 use MoleculeMod, only : Molecule
@@ -27,10 +27,12 @@ contains
         read(ioUnit,FMT='(I6,1x,I7)')nMol,nLine
         allocate(molecules(nMol))
         do i=1,nMol,1
-            molecules(i)=Molecule(ID=i) 
+            molecules(i) = Molecule(ID=i) 
         end do
-        if(nLine.ne.size(atomCards,1))call PrintError(3,CName,&
-        'Number of lines in file incommensurable to number of atoms')
+        if (nLine .ne. size(atomCards,1))call PrintError(3,CName,&
+            'Number of lines in file incommensurable to number " &
+            // "of atoms (' // toChar(nline) //" / " &
+            // toChar(size(atomCards, 1)) //')')
         do i=1,nline,1
             read(ioUnit,FMT='(I6)')myMol
             call molecules(myMol)%append(atomCards(i))

@@ -2,16 +2,17 @@
 FC= gfortran
 EXECUTEABLE=GeoHBond.out
 
-CFLAGS=-cpp -c -CC -ffree-form -DISPNTLIST=1 
-DFLAGS=-ggdb3 -pedantic -Wall -ffpe-trap=overflow -fcheck=all -fbacktrace
-OFLAGS=-funroll-loops  -O2  #Turn on Compiler optimization
+CFLAGS=-cpp -c -CC -ffree-form -DISPNTLIST=1
+DFLAGS=-ggdb3 -pedantic -Wall -ffpe-trap=overflow -fcheck=all -fbacktrace \
+	   -D__DEBUG=1
+OFLAGS=-funroll-loops  -D__DEBUG=0 -O2  #Turn on Compiler optimization
 LDFLAGS=
 
 WD=$(shell pwd)
 SRC=$(addprefix $(WD)/,src)
 BUILD=$(addprefix $(WD)/,build)
 #a set of variables and names required for Program version documentation
-COMPILE_TIME=$(shell date +"%a, %Y.%m.%d %H:%M:%S %Z")
+COMPILE_TIME=$(shell date +"%a, %d.%m.%Y %H:%M:%S %Z")
 MACHINE=$(shell echo $$HOSTNAME)
 GIT_COMMIT=$(shell git rev-parse HEAD)
 CFLAGS+=-D__PROGRAM_COMPILE_TIME="'$(COMPILE_TIME)'" \
@@ -30,10 +31,11 @@ LIBDIR=$(addprefix $(WD)/,../repo/lib)
 LIBS=-lfftw3 -lbase
 
 T2AMODS= 
-T2BMODS= AtomListMod.F Molecule.F ReadPSFMod.F DetMolsMod.F 
+T2BMODS= AtomListMod.F Molecule.F ReadPSFMod.F HBGeoSetup.F DetMolsMod.F \
+		 GeoAnalysisMod.F
 
 STRCMODS= GenGrids.F
-LOCMODS= ProvideGeoMod.F DistancesMod.F Main.F
+LOCMODS= ProvideGeoMod.F DistancesMod.F BondMod.F Main.F
 		 
 		 
 		 

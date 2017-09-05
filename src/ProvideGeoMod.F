@@ -26,7 +26,7 @@ type,extends(Snapshot)                              :: InstanceGeo
 end type
 type                                                :: TrajFile
     private
-        character(LEN=64)                           :: ftrajectory
+        character(LEN=80)                           :: ftrajectory
         integer                                     :: iounit
         logical                                     :: openedbyme
         logical                                     :: isopen

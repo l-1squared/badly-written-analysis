@@ -10,7 +10,8 @@ use useful, only : globlinelen => GlobLineLen, debug
 use Print_Arrays, only : get_unit
 use GenGridMod, only : GenHist
 use AtomMod, only : Atom
-use geom_module, only : ImageDistVec, vec_len => vec_length
+use GeoAnalysisMod, only : atom_distance, get_xi
+
 implicit none
 private
 character(*), parameter :: MName = 'DistanceMod'
@@ -18,6 +19,8 @@ type                                                :: DataCol
     private
         type(GenHist)                               :: CCdist
         type(GenHist)                               :: NNdist
+        type(GenHist)                               :: CN1dist
+        type(GenHist)                               :: CN2dist
     contains
         procedure, pass(this), public               :: update => dac_update
         procedure, pass(this), public               :: write_otp =>dac_print
@@ -47,14 +50,19 @@ contains
         character(LEN=*), intent(in)                :: finput
         character(LEN=globlinelen)                  :: file_CC_distance
         character(LEN=globlinelen)                  :: file_NN_distance
+        character(LEN=globlinelen)                  :: file_CN1_distance
+        character(LEN=globlinelen)                  :: file_CN2_distance
         integer                                     :: iounit
         logical                                     :: ioisopen
         real(8)                                     :: histogram_interval
         namelist/distance_data/file_CC_distance, file_NN_distance, &
+                               file_CN1_distance, file_CN2_distance, &
                                histogram_interval
 
         file_CC_distance = "CCdist.pf"
         file_NN_distance = "NNdist.pf"
+        file_CN1_distance = "CN1dist.pf"
+        file_CN2_distance = "CN2dist.pf"
         histogram_interval = 0.05
         call get_unit(finput, iounit, ioisopen)
         if (.not. ioisopen) open(iounit, FILE=finput, STATUS='old', &
@@ -65,6 +73,8 @@ contains
 
         dac_cnstr1%CCdist = GenHist(file_CC_distance, histogram_interval)
         dac_cnstr1%NNdist = GenHist(file_NN_distance, histogram_interval)
+        dac_cnstr1%CN1dist = GenHist(file_CN1_distance, histogram_interval)
+        dac_cnstr1%CN2dist = GenHist(file_CN2_distance, histogram_interval)
     end function
 
 
@@ -81,17 +91,34 @@ contains
         character(*), parameter :: CName = MName // ":" // FName
         class(DataCol), intent(inout)               :: this
         class(Atom), Dimension(:), intent(in)       :: atomlist
+        real(8)                                     :: distance1, distance2
         
         call this%CCdist%update(get_xi(atomlist), &
-             vec_len(ImageDistVec(atomlist(17)%Pos(), atomlist(19)%Pos())))
-        call this%CCdist%update(get_xi(atomlist), &
-             vec_len(ImageDistVec(atomlist(1)%Pos(), atomlist(2)%Pos())))
+             atom_distance(atomlist(17), atomlist(19)))
+        call this%NNdist%update(get_xi(atomlist), &
+             atom_distance(atomlist(1), atomlist(2)))
+!       Q can rotate with respect to DMAD. Therefore, first check witch
+!       C is closer
+        distance1 = atom_distance(atomlist(1), atomlist(17))
+        distance2 = atom_distance(atomlist(1), atomlist(19))
+        if (distance1 .lt. distance2) then
+            call this%CN1dist%update(get_xi(atomlist), &
+                 atom_distance(atomlist(1), atomlist(17)))
+            call this%CN2dist%update(get_xi(atomlist), &
+                 atom_distance(atomlist(2), atomlist(19)))
+        else
+            call this%CN1dist%update(get_xi(atomlist), &
+                 atom_distance(atomlist(1), atomlist(19)))
+            call this%CN2dist%update(get_xi(atomlist), &
+                 atom_distance(atomlist(2), atomlist(17)))
+        end if            
     end subroutine
 
 
 !   --------------------------------------------------------------------
 !   <summary>
 !       print the content of the grids
+!   </summary>
 !   --------------------------------------------------------------------
     subroutine dac_print(this)
         implicit none
@@ -100,33 +127,8 @@ contains
         class(DataCol), intent(in)                  :: this
         call this%CCdist%printHist()
         call this%NNdist%printHist()
+        call this%CN1dist%printHist()
+        call this%CN2dist%printHist()
     end subroutine
-
-
-!   --------------------------------------------------------------------
-!   <summary>
-!       calculate the value of the reaction coordinate from the geometry
-!   </summary>
-!   <param name="atomllis"> the ordered list of atoms</param>
-!   <returns> the image corrected distance </returns>
-!   --------------------------------------------------------------------
-    pure function get_xi(atomlist)result(distance)
-        implicit none
-        class(Atom), Dimension(:), intent(in)       :: atomlist
-        real(8)                                     :: distance
-        real(8), Dimension(3,4)                     :: pos
-        real(8), Dimension(3)                       :: ctr1, ctr2
-        pos(:,1) = atomlist(1)%Pos()
-        pos(:,2) = atomlist(2)%Pos()
-        pos(:,3) = atomlist(17)%Pos()
-        pos(:,4) = atomlist(19)%Pos()
-!       -------------------------------------
-!       try to get the Centers of DMAD N atoms (ctr1)
-!       and the Q C atoms (ctr2). ImageDistVec calculates i
-!       pos(:,2)+outvec-pos(:,1). Hence, the halved distance
-!       has to be ADDED to Pos(:,1).
-        ctr1 = pos(:,1) + ImageDistVec(pos(:,1), pos(:,2)) * 0.5d0
-        ctr2 = pos(:,3) + ImageDistVec(pos(:,3), pos(:,4)) * 0.5d0
-        distance = vec_len(ImageDistVec(ctr2, ctr1))
-    end function
 end module
+

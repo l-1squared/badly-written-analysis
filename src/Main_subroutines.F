@@ -1,18 +1,21 @@
 !----------------------------------------------------------------------- 
 !List of subroutines that are added to file Main.F at compile time
 !----------------------------------------------------------------------- 
-subroutine read_input(finput, fqmmmtrajlist, nreplica)
+subroutine read_input(finput, fqmmmtrajlist, nreplica, fqmmmmol)
     implicit none
     character(*), parameter :: FName = 'read_input'
     character(*), parameter :: CName = MName // ":" // FName
     character(*), intent(in)                        :: finput
     character(*), intent(out)                       :: fqmmmtrajlist
+    character(*), intent(out)                       :: fqmmmmol
     integer, intent(out)                            :: nreplica
     integer                                         :: iounit
     logical                                         :: ioisopen
     character(LEN=globlinelen)                      :: qmmm_trajectory_file
+    character(LEN=globlinelen)                      :: file_molecule_association
     integer                                         :: number_of_replicas
-    namelist/general/ qmmm_trajectory_file, number_of_replicas
+    namelist/general/ qmmm_trajectory_file, number_of_replicas,&
+                      file_molecule_association 
 
     call get_unit(finput, iounit, ioisopen)
     if (.not. ioisopen) open(iounit, FILE=finput, STATUS='old',&
@@ -23,6 +26,7 @@ subroutine read_input(finput, fqmmmtrajlist, nreplica)
 
     fqmmmtrajlist = qmmm_trajectory_file
     nreplica = number_of_replicas
+    fqmmmmol = file_molecule_association
 end subroutine
 
 
